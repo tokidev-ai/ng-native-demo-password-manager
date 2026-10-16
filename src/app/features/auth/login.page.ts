@@ -1,24 +1,76 @@
-import { Component } from '@angular/core';
-import { Pressable, Text, View } from '@ng-native/components';
-import { NativeHeader, NativeRouterLink } from '@ng-native/router';
+import { Component, inject, signal } from '@angular/core';
+import { FormField, email, form, minLength, required, submit } from '@angular/forms/signals';
+import { Text } from '@ng-native/components';
+import { NativeHeader, NativeNavigation } from '@ng-native/router';
+import { AuthService, authErrorMessage } from '../../core/auth.service.ts';
+import { Button } from '../../shared/ui/button.ts';
+import { errorText } from '../../shared/ui/form-utils.ts';
+import { Screen } from '../../shared/ui/screen.ts';
+import { TextField } from '../../shared/ui/text-field.ts';
 
 @Component({
-  imports: [NativeHeader, NativeRouterLink, Pressable, Text, View],
+  imports: [Button, FormField, NativeHeader, Screen, Text, TextField],
   selector: 'app-login-page',
   host: { style: 'flex: 1' },
   template: `
     <native-header title="Sign in" />
-    <view class="flex-1 justify-center gap-3 bg-vault-bg p-6">
-      <text class="text-3xl font-bold text-vault-text">NG Vault</text>
-      <text class="text-base text-vault-muted">Sign in form arrives with the auth feature.</text>
-      <pressable
-        accessibilityRole="button"
-        class="mt-2 items-center rounded-xl bg-vault-accent p-4 press:bg-vault-accent-press"
-        [nativeRouterLink]="['/vaults']"
-      >
-        <text class="text-base font-semibold text-white">Open vaults</text>
-      </pressable>
-    </view>
+    <app-screen>
+      <text class="mt-4 text-3xl font-bold text-vault-text">NG Vault</text>
+      <text class="text-base text-vault-muted">Sign in to open your vaults.</text>
+
+      <app-text-field
+        [formField]="f.email"
+        label="Email"
+        keyboardType="email-address"
+        [error]="emailError()"
+      />
+      <app-text-field
+        [formField]="f.password"
+        label="Password"
+        [secure]="true"
+        [error]="passwordError()"
+      />
+
+      @if (failure()) {
+        <text class="text-sm text-vault-danger">{{ failure() }}</text>
+      }
+
+      <app-button label="Sign in" [loading]="f().submitting()" (press)="submitForm()" />
+      <app-button label="Forgot password?" variant="ghost" (press)="go('/forgot')" />
+      <app-button label="Create an account" variant="secondary" (press)="go('/register')" />
+    </app-screen>
   `,
 })
-export class LoginPage {}
+export class LoginPage {
+  private readonly auth = inject(AuthService);
+  private readonly nav = inject(NativeNavigation);
+
+  protected readonly model = signal({ email: '', password: '' });
+  protected readonly f = form(this.model, (p) => {
+    required(p.email, { message: 'Enter your email.' });
+    email(p.email, { message: 'Enter a valid email.' });
+    required(p.password, { message: 'Enter your password.' });
+    minLength(p.password, 8, { message: 'At least 8 characters.' });
+  });
+  protected readonly failure = signal('');
+  protected readonly emailError = () => errorText(this.f.email);
+  protected readonly passwordError = () => errorText(this.f.password);
+
+  protected submitForm(): Promise<boolean> {
+    this.failure.set('');
+    return submit(this.f, async () => {
+      try {
+        const { email, password } = this.model();
+        await this.auth.signIn(email, password);
+        await this.nav.reset(['/vaults']);
+      } catch (error) {
+        this.failure.set(authErrorMessage(error));
+      }
+      return undefined;
+    });
+  }
+
+  protected go(path: string): void {
+    void this.nav.push([path]);
+  }
+}
