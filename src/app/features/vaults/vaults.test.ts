@@ -6,8 +6,9 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import { routes } from '../../app.routes.ts';
 import { App } from '../../app.ts';
 import { AuthService } from '../../core/auth.service.ts';
+import { CryptoService } from '../../core/crypto.service.ts';
 import { VAULT_REPOSITORY } from '../../core/vault.repository.ts';
-import { InMemoryVaultRepository, answeringDialogs, fakeAuth } from '../../testing/fakes.ts';
+import { InMemoryVaultRepository, answeringDialogs, fakeAuth, fakeCrypto } from '../../testing/fakes.ts';
 
 vi.mock('../../core/firebase.ts', () => ({ auth: {}, db: {} }));
 
@@ -22,6 +23,7 @@ function open(confirm = true) {
     providers: [
       provideNativeRouter(routes, withComponentInputBinding()),
       { provide: AuthService, useValue: fakeAuth() },
+      { provide: CryptoService, useValue: fakeCrypto() },
       { provide: VAULT_REPOSITORY, useValue: repo },
       { provide: Dialogs.SOURCE, useValue: answeringDialogs(confirm) },
     ],

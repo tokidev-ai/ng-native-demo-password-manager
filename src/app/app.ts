@@ -5,7 +5,7 @@ import { StatusBar } from '@ng-native/device';
 import { NativeNavigation, NativeStackOutlet } from '@ng-native/router';
 import { AuthService } from './core/auth.service.ts';
 
-const PUBLIC_PATHS = ['/login', '/register', '/forgot'];
+const PUBLIC_PATHS = ['/login', '/register', '/forgot', '/unlock'];
 
 /**
  * Element names are lowercase, and that is load-bearing rather than style: an uppercase name is

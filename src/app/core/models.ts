@@ -15,6 +15,8 @@ export interface PasswordEntry {
   /** Plain text in memory. Encrypted before it is written to Firestore. */
   password: string;
   notes: string;
+  /** True when the secrets could not be decrypted (for example after a password reset). */
+  unreadable: boolean;
   createdAt: number;
   updatedAt: number;
 }

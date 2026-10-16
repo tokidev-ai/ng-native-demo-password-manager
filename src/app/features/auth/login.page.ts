@@ -3,6 +3,7 @@ import { FormField, email, form, minLength, required, submit } from '@angular/fo
 import { Text } from '@ng-native/components';
 import { NativeHeader, NativeNavigation } from '@ng-native/router';
 import { AuthService, authErrorMessage } from '../../core/auth.service.ts';
+import { CryptoService, WrongPasswordError } from '../../core/crypto.service.ts';
 import { Button } from '../../shared/ui/button.ts';
 import { errorText } from '../../shared/ui/form-utils.ts';
 import { Screen } from '../../shared/ui/screen.ts';
@@ -43,6 +44,7 @@ import { TextField } from '../../shared/ui/text-field.ts';
 })
 export class LoginPage {
   private readonly auth = inject(AuthService);
+  private readonly crypto = inject(CryptoService);
   private readonly nav = inject(NativeNavigation);
 
   protected readonly model = signal({ email: '', password: '' });
@@ -62,9 +64,16 @@ export class LoginPage {
       try {
         const { email, password } = this.model();
         await this.auth.signIn(email, password);
+        await this.crypto.unlock(password);
         await this.nav.reset(['/vaults']);
       } catch (error) {
-        this.failure.set(authErrorMessage(error));
+        if (error instanceof WrongPasswordError) {
+          // Signed in, but this password does not match the one the vaults were sealed with.
+          await this.auth.signOut();
+          this.failure.set(error.message);
+        } else {
+          this.failure.set(authErrorMessage(error));
+        }
       }
       return undefined;
     });

@@ -4,8 +4,9 @@ import { render, screen, userEvent } from '@ng-native/testing';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { routes } from './app.routes.ts';
 import { App } from './app.ts';
+import { CryptoService } from './core/crypto.service.ts';
 import { VAULT_REPOSITORY } from './core/vault.repository.ts';
-import { InMemoryVaultRepository } from './testing/fakes.ts';
+import { InMemoryVaultRepository, fakeCrypto } from './testing/fakes.ts';
 
 const fb = vi.hoisted(() => {
   const state = { listener: null as null | ((user: unknown) => void), user: null as unknown };
@@ -40,14 +41,18 @@ vi.mock('firebase/auth', () => ({
   sendPasswordResetEmail: (_a: unknown, email: string) => fb.reset(email),
 }));
 
+let crypto = fakeCrypto(false);
+
 const providers = () => [
   provideNativeRouter(routes, withComponentInputBinding()),
+  { provide: CryptoService, useValue: crypto },
   { provide: VAULT_REPOSITORY, useValue: new InMemoryVaultRepository() },
 ];
 
 beforeEach(() => {
   vi.resetAllMocks();
   fb.state.user = null;
+  crypto = fakeCrypto(false);
 });
 
 test('a signed out user lands on the sign in page', async () => {
@@ -92,9 +97,29 @@ test('a wrong password shows the error and stays on the page', async () => {
   expect(await screen.findByText('Wrong email or password.')).toBeTruthy();
 });
 
-test('a user restored from a stored session skips the login', async () => {
+test('sign in also unlocks the vaults with the same password', async () => {
+  await render(App, { providers: providers() });
+  await screen.findByText('Sign in to open your vaults.');
+  const user = userEvent.setup();
+
+  await user.type(screen.getByLabelText('Email'), 'ana@example.com');
+  await user.type(screen.getByLabelText('Password'), 'correct-horse');
+  await user.press(screen.getByRole('button', { name: 'Sign in' }));
+  await screen.findByText('No vaults yet');
+
+  expect(crypto.calls).toEqual(['correct-horse']);
+});
+
+test('a restored session must unlock before it sees the vaults', async () => {
   fb.state.user = { uid: 'u1', email: 'ana@example.com' };
   await render(App, { providers: providers() });
+  const user = userEvent.setup();
+
+  expect(await screen.findByText('Unlock your vaults')).toBeTruthy();
+
+  await user.type(screen.getByLabelText('Password'), 'correct-horse');
+  await user.press(screen.getByRole('button', { name: 'Unlock' }));
 
   expect(await screen.findByText('No vaults yet')).toBeTruthy();
+  expect(crypto.calls).toEqual(['correct-horse']);
 });

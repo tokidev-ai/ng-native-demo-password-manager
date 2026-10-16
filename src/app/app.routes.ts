@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth.guard.ts';
+import { authGuard, guestGuard, lockedGuard } from './core/auth.guard.ts';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -18,6 +18,11 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () =>
       import('./features/auth/forgot-password.page.ts').then((m) => m.ForgotPasswordPage),
+  },
+  {
+    path: 'unlock',
+    canActivate: [lockedGuard],
+    loadComponent: () => import('./features/auth/unlock.page.ts').then((m) => m.UnlockPage),
   },
   {
     path: 'vaults',
@@ -39,6 +44,24 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/vaults/vault-detail.page.ts').then((m) => m.VaultDetailPage),
+  },
+  {
+    path: 'vaults/:vaultId/passwords/new',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/passwords/password-form.page.ts').then((m) => m.PasswordFormPage),
+  },
+  {
+    path: 'vaults/:vaultId/passwords/:passwordId/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/passwords/password-form.page.ts').then((m) => m.PasswordFormPage),
+  },
+  {
+    path: 'vaults/:vaultId/passwords/:passwordId',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/passwords/password-detail.page.ts').then((m) => m.PasswordDetailPage),
   },
   {
     path: 'settings',
