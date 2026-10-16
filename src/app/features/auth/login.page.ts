@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormField, email, form, minLength, required, submit } from '@angular/forms/signals';
 import { Text } from '@ng-native/components';
 import { NativeHeader, NativeNavigation } from '@ng-native/router';
@@ -18,6 +18,11 @@ import { TextField } from '../../shared/ui/text-field.ts';
     <app-screen>
       <text class="mt-4 text-3xl font-bold text-vault-text">NG Vault</text>
       <text class="text-base text-vault-muted">Sign in to open your vaults.</text>
+      @if (created() === '1') {
+        <text class="text-base font-medium text-vault-ok">
+          Account created. Sign in to continue.
+        </text>
+      }
 
       <app-text-field
         [formField]="f.email"
@@ -43,6 +48,9 @@ import { TextField } from '../../shared/ui/text-field.ts';
   `,
 })
 export class LoginPage {
+  /** Set to '1' by the register page, from the ?created=1 query param. */
+  readonly created = input<string>();
+
   private readonly auth = inject(AuthService);
   private readonly crypto = inject(CryptoService);
   private readonly nav = inject(NativeNavigation);

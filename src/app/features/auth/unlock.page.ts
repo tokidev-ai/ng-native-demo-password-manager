@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormField, form, required, submit } from '@angular/forms/signals';
 import { Text } from '@ng-native/components';
 import { NativeHeader, NativeNavigation } from '@ng-native/router';
-import { AuthService } from '../../core/auth.service.ts';
+import { AuthService, authErrorMessage } from '../../core/auth.service.ts';
 import { CryptoService, WrongPasswordError } from '../../core/crypto.service.ts';
 import { Button } from '../../shared/ui/button.ts';
 import { errorText } from '../../shared/ui/form-utils.ts';
@@ -58,7 +58,7 @@ export class UnlockPage {
         await this.nav.reset(['/vaults']);
       } catch (error) {
         this.failure.set(
-          error instanceof WrongPasswordError ? 'Wrong password.' : 'Could not unlock. Try again.',
+          error instanceof WrongPasswordError ? 'Wrong password.' : authErrorMessage(error),
         );
       }
       return undefined;

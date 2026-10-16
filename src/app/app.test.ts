@@ -43,6 +43,11 @@ vi.mock('firebase/auth', () => ({
 
 let crypto = fakeCrypto(false);
 
+const REGISTER_INTRO = 'Your password also unlocks your vaults. It cannot be recovered, so keep it safe.';
+
+/** The input on the screen in front: pushed-away screens stay mounted, so labels can repeat. */
+const topField = async (label: string) => (await screen.findAllByLabelText(label)).at(-1)!;
+
 const providers = () => [
   provideNativeRouter(routes, withComponentInputBinding()),
   { provide: CryptoService, useValue: crypto },
@@ -82,6 +87,40 @@ test('a valid sign in calls Firebase and opens the vaults', async () => {
 
   expect(await screen.findByText('No vaults yet')).toBeTruthy();
   expect(fb.signIn).toHaveBeenCalledWith('ana@example.com', 'correct-horse');
+});
+
+test('creating an account confirms it and returns to sign in', async () => {
+  await render(App, { providers: providers() });
+  await screen.findByText('Sign in to open your vaults.');
+  const user = userEvent.setup();
+
+  await user.press(screen.getByRole('button', { name: 'Create an account' }));
+  await screen.findByText(REGISTER_INTRO);
+  await user.type(await topField('Email'), 'new@example.com');
+  await user.type(await topField('Password'), 'correct-horse');
+  await user.type(await topField('Confirm password'), 'correct-horse');
+  await user.press(screen.getByRole('button', { name: 'Create account' }));
+
+  expect(await screen.findByText('Account created. Sign in to continue.')).toBeTruthy();
+  expect(fb.signUp).toHaveBeenCalledWith('new@example.com', 'correct-horse');
+  expect(fb.signOut).toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
+});
+
+test('mismatched passwords block account creation', async () => {
+  await render(App, { providers: providers() });
+  await screen.findByText('Sign in to open your vaults.');
+  const user = userEvent.setup();
+
+  await user.press(screen.getByRole('button', { name: 'Create an account' }));
+  await screen.findByText(REGISTER_INTRO);
+  await user.type(await topField('Email'), 'new@example.com');
+  await user.type(await topField('Password'), 'correct-horse');
+  await user.type(await topField('Confirm password'), 'different-horse');
+  await user.press(screen.getByRole('button', { name: 'Create account' }));
+
+  expect(await screen.findByText('Passwords do not match.')).toBeTruthy();
+  expect(fb.signUp).not.toHaveBeenCalled();
 });
 
 test('a wrong password shows the error and stays on the page', async () => {

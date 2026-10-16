@@ -11,7 +11,6 @@ import {
 import { Text } from '@ng-native/components';
 import { NativeHeader, NativeNavigation } from '@ng-native/router';
 import { AuthService, authErrorMessage } from '../../core/auth.service.ts';
-import { CryptoService, WrongPasswordError } from '../../core/crypto.service.ts';
 import { Button } from '../../shared/ui/button.ts';
 import { errorText } from '../../shared/ui/form-utils.ts';
 import { Screen } from '../../shared/ui/screen.ts';
@@ -57,7 +56,6 @@ import { TextField } from '../../shared/ui/text-field.ts';
 })
 export class RegisterPage {
   private readonly auth = inject(AuthService);
-  private readonly crypto = inject(CryptoService);
   private readonly nav = inject(NativeNavigation);
 
   protected readonly model = signal({ email: '', password: '', confirm: '' });
@@ -83,16 +81,12 @@ export class RegisterPage {
       try {
         const { email, password } = this.model();
         await this.auth.signUp(email, password);
-        await this.crypto.unlock(password);
-        await this.nav.reset(['/vaults']);
+        // Firebase signs a new user in. Sign out again so they confirm it by signing in, which
+        // also sets up their encryption key on that first sign in.
+        await this.auth.signOut();
+        await this.nav.reset(['/login'], { queryParams: { created: '1' } });
       } catch (error) {
-        if (error instanceof WrongPasswordError) {
-          // Signed in, but this password does not match the one the vaults were sealed with.
-          await this.auth.signOut();
-          this.failure.set(error.message);
-        } else {
-          this.failure.set(authErrorMessage(error));
-        }
+        this.failure.set(authErrorMessage(error));
       }
       return undefined;
     });
