@@ -25,6 +25,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/vaults/vault-list.page.ts').then((m) => m.VaultListPage),
   },
   {
+    path: 'vaults/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/vaults/vault-form.page.ts').then((m) => m.VaultFormPage),
+  },
+  {
+    path: 'vaults/:vaultId/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/vaults/vault-form.page.ts').then((m) => m.VaultFormPage),
+  },
+  {
     path: 'vaults/:vaultId',
     canActivate: [authGuard],
     loadComponent: () =>

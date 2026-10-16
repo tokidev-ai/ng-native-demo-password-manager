@@ -4,6 +4,8 @@ import { render, screen, userEvent } from '@ng-native/testing';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { routes } from './app.routes.ts';
 import { App } from './app.ts';
+import { VAULT_REPOSITORY } from './core/vault.repository.ts';
+import { InMemoryVaultRepository } from './testing/fakes.ts';
 
 const fb = vi.hoisted(() => {
   const state = { listener: null as null | ((user: unknown) => void), user: null as unknown };
@@ -38,7 +40,10 @@ vi.mock('firebase/auth', () => ({
   sendPasswordResetEmail: (_a: unknown, email: string) => fb.reset(email),
 }));
 
-const providers = () => [provideNativeRouter(routes, withComponentInputBinding())];
+const providers = () => [
+  provideNativeRouter(routes, withComponentInputBinding()),
+  { provide: VAULT_REPOSITORY, useValue: new InMemoryVaultRepository() },
+];
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -70,7 +75,7 @@ test('a valid sign in calls Firebase and opens the vaults', async () => {
   await user.type(screen.getByLabelText('Password'), 'correct-horse');
   await user.press(screen.getByRole('button', { name: 'Sign in' }));
 
-  expect(await screen.findByText('Your vaults will be listed here.')).toBeTruthy();
+  expect(await screen.findByText('No vaults yet')).toBeTruthy();
   expect(fb.signIn).toHaveBeenCalledWith('ana@example.com', 'correct-horse');
 });
 
@@ -91,5 +96,5 @@ test('a user restored from a stored session skips the login', async () => {
   fb.state.user = { uid: 'u1', email: 'ana@example.com' };
   await render(App, { providers: providers() });
 
-  expect(await screen.findByText('Your vaults will be listed here.')).toBeTruthy();
+  expect(await screen.findByText('No vaults yet')).toBeTruthy();
 });
