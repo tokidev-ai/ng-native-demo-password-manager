@@ -1,0 +1,17 @@
+/* No plain `tailwindcss` import: it includes preflight, a browser reset that doesn't apply here. */
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/utilities.css';
+@import '@ng-native/tailwind/native.css';
+
+/* Vault palette. Gives utilities such as bg-vault-bg, text-vault-muted and bg-vault-accent. */
+@theme {
+  --color-vault-bg: #0b1020;
+  --color-vault-surface: #151b2e;
+  --color-vault-border: #252d45;
+  --color-vault-text: #e8ecf8;
+  --color-vault-muted: #8b94b2;
+  --color-vault-accent: #6366f1;
+  --color-vault-accent-press: #4f52d9;
+  --color-vault-danger: #ef4444;
+  --color-vault-ok: #10b981;
+}
