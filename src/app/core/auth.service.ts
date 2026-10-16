@@ -27,8 +27,9 @@ export function authErrorMessage(error: unknown): string {
     case 'auth/too-many-requests':
       return 'Too many attempts. Try again in a few minutes.';
     case 'auth/network-request-failed':
-    case 'unavailable':
       return 'No connection. Check your network and try again.';
+    case 'unavailable':
+      return 'Cannot reach Firestore. Check your network, and that the Firestore database is created in the Firebase console.';
     case 'auth/operation-not-allowed':
       return 'Email/Password sign-in is disabled. Enable it in Firebase console > Authentication > Sign-in method.';
     case 'auth/invalid-api-key':
