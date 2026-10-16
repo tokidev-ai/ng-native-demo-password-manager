@@ -1,11 +1,18 @@
+import { withComponentInputBinding } from '@angular/router';
+import { provideNativeRouter } from '@ng-native/router';
 import { render, screen, userEvent } from '@ng-native/testing';
 import { expect, test } from 'vitest';
+import { routes } from './app.routes.ts';
 import { App } from './app.ts';
 
-test('counts taps', async () => {
-  await render(App);
+test('opens on the sign in page and navigates to the vaults', async () => {
+  await render(App, {
+    providers: [provideNativeRouter(routes, withComponentInputBinding())],
+  });
 
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Tapped 0 times' }));
+  expect(await screen.findByText('NG Vault')).toBeTruthy();
 
-  expect(screen.getByText('Tapped 1 times')).toBeTruthy();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Open vaults' }));
+
+  expect(await screen.findByText('Your vaults will be listed here.')).toBeTruthy();
 });

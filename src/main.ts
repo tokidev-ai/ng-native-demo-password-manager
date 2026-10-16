@@ -3,16 +3,20 @@
 // else does in a release build, which would then get React Native's fetch, with no body.
 import 'expo';
 import { AppRegistry, Image, Platform, processColor } from 'react-native';
+import { withComponentInputBinding } from '@angular/router';
 import { mount } from '@ng-native/platform';
 import { currentConditions, deviceTokens, watchConditions } from '@ng-native/device';
 import { getFabricUIManager, registerPlatformComponents } from '@ng-native/fabric';
+import { provideNativeRouter } from '@ng-native/router';
 import tailwind from '../.angular-native/app.tailwind.js';
+import { routes } from './app/app.routes.ts';
 import { App } from './app/app.ts';
 
 registerPlatformComponents(Platform.OS);
 
 AppRegistry.registerRunnable('main', ({ rootTag }: { rootTag: number | string }) => {
   const app = mount(Number(rootTag), App, getFabricUIManager(), {
+    providers: [provideNativeRouter(routes, withComponentInputBinding())],
     // The Tailwind utilities compiled from src/styles.css.
     globalStyles: tailwind,
     // Colours, as the integers the platform wants.

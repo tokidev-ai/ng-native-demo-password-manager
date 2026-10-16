@@ -6,11 +6,13 @@
   "dependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
+    "@angular/router": "^22.2.3",
     "@ng-native/components": "0.14.0",
     "@ng-native/device": "0.14.0",
     "@ng-native/fabric": "0.14.0",
     "@ng-native/metro": "0.14.0",
     "@ng-native/platform": "0.14.0",
+    "@ng-native/router": "^0.14.0",
     "@ng-native/tailwind": "^0.14.0",
     "@tailwindcss/cli": "^4.3.3",
     "expo": "~57.0.26",
@@ -19,6 +21,7 @@
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
